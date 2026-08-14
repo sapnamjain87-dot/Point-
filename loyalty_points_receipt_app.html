@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loyalty Points Manager</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;color:#1f2937}
+header{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;padding:24px;text-align:center}
+main{width:min(1000px,94%);margin:22px auto}
+.panel,.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input,select,button{width:100%;padding:11px;border-radius:9px;border:1px solid #e5e7eb;font-size:15px;box-sizing:border-box}
+button{border:none;font-weight:700;cursor:pointer;background:#4f46e5;color:white}
+.secondary{background:#eef2ff;color:#3730a3}
+.success{background:#dcfce7;color:#166534}
+.danger{background:#fee2e2;color:#991b1b}
+.programs{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.points{font-size:30px;font-weight:800;margin:10px 0}
+.muted{color:#6b7280;font-size:13px}
+.notice{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;padding:12px;border-radius:10px;margin-top:10px}
+#scanResult{display:none}
+@media(max-width:760px){.grid,.row,.programs{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>Loyalty Points Manager</h1>
+<p>RUT + manual points + Chilean receipt workflow</p>
+</header>
+<main>
+<section class="grid">
+<div class="card"><div class="muted">Programs</div><div class="points" id="totalPrograms">0</div></div>
+<div class="card"><div class="muted">Total Points</div><div class="points" id="totalPoints">0</div></div>
+<div class="card"><div class="muted">Receipt Updates</div><div class="points" id="receiptUpdates">0</div></div>
+</section>
+
+<section class="panel">
+<h2>User Profile</h2>
+<div class="row">
+<div><label>Name</label><input id="profileName" placeholder="Your name"></div>
+<div><label>RUT</label><input id="profileRut" placeholder="12.345.678-9"></div>
+</div>
+<br><button onclick="saveProfile()">Save Profile</button>
+</section>
+
+<section class="panel">
+<h2>Scan / Upload Boleta</h2>
+<div class="row">
+<div><label>Receipt image</label><input id="receiptFile" type="file" accept="image/*,.pdf"></div>
+<div><label>Loyalty program</label><select id="receiptProgram"></select></div>
+</div>
+<br>
+<div class="row">
+<div><label>Backend URL</label><input id="backendUrl" placeholder="http://localhost:3000/api/receipts/scan"></div>
+<div><label>Points rule</label><input value="1 point per CLP 1,000" disabled></div>
+</div>
+<br><button onclick="scanReceipt()">Scan Receipt</button>
+<div class="notice">Keep your Mindee API key only on the backend server. Do not paste it into this page.</div>
+</section>
+
+<section class="panel" id="scanResult">
+<h2>Receipt Result</h2>
+<div class="row">
+<div><label>Store</label><input id="scanMerchant"></div>
+<div><label>Date</label><input id="scanDate" type="date"></div>
+</div>
+<br>
+<div class="row">
+<div><label>Total Amount (CLP)</label><input id="scanTotal" type="number"></div>
+<div><label>Calculated Points</label><input id="scanPoints" type="number" disabled></div>
+</div>
+<br><button class="success" onclick="confirmReceiptPoints()">Confirm & Add Points</button>
+</section>
+
+<section class="panel">
+<h2>Add Loyalty Program</h2>
+<div class="row">
+<div><label>Store / Program</label><input id="name" placeholder="Falabella, Lider..."></div>
+<div><label>Current Points</label><input id="points" type="number" value="0"></div>
+</div>
+<br><button onclick="addProgram()">Add Program</button>
+</section>
+
+<section id="programList" class="programs"></section>
+
+<section class="panel">
+<h2>Activity History</h2>
+<div id="history"></div>
+</section>
+</main>
+
+<script>
+const KP="loyaltyProgramsV3", KPR="loyaltyProfileV1", KH="loyaltyHistoryV1";
+let programs=JSON.parse(localStorage.getItem(KP)||"[]");
+let history=JSON.parse(localStorage.getItem(KH)||"[]");
+let scanned=null;
+
+function esc(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function save(){localStorage.setItem(KP,JSON.stringify(programs));localStorage.setItem(KH,JSON.stringify(history))}
+function saveProfile(){
+  localStorage.setItem(KPR,JSON.stringify({name:profileName.value.trim(),rut:profileRut.value.trim()}));
+  alert("Profile saved");
+}
+function loadProfile(){
+  const p=JSON.parse(localStorage.getItem(KPR)||"{}");
+  profileName.value=p.name||""; profileRut.value=p.rut||"";
+}
+  function addProgram() {
+  const nameInput = document.getElementById("name");
+  const pointsInput = document.getElementById("points");
+
+  const n = nameInput.value.trim();
+
+  if (!n) {
+    alert("Enter store/program name");
+    return;
+  }
+
+  const id =
+    (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : "program-" + Date.now();
+
+  programs.push({
+    id: id,
+    name: n,
+    points: Number(pointsInput.value || 0)
+  });
+
+  nameInput.value = "";
+  pointsInput.value = 0;
+
+  save();
+  render();
+
+  alert(n + " added successfully");
+}function changePoints(id,dir){
+  const amt=Number(document.getElementById("amt-"+id).value);
+  if(!amt||amt<=0)return alert("Enter a valid amount");
+  const p=programs.find(x=>x.id===id);
+  if(dir<0&&amt>p.points)return alert("Not enough points");
+  p.points+=dir*amt;
+  history.push({time:Date.now(),type:"manual",text:`${dir>0?"Added":"Redeemed"} ${amt} points in ${p.name}`});
+  save();render();
+}
+function delProgram(id){
+  if(confirm("Delete this program?")){programs=programs.filter(x=>x.id!==id);save();render()}
+}
+function render(){
+  totalPrograms.textContent=programs.length;
+  totalPoints.textContent=programs.reduce((s,p)=>s+Number(p.points),0).toLocaleString();
+  receiptUpdates.textContent=history.filter(h=>h.type==="receipt").length;
+  receiptProgram.innerHTML=programs.length?programs.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(""):'<option value="">Add a program first</option>';
+  programList.innerHTML=programs.length?programs.map(p=>`
+    <div class="card">
+      <h3>${esc(p.name)}</h3>
+      <div class="points">${Number(p.points).toLocaleString()}</div>
+      <div class="muted">available points</div><br>
+      <input id="amt-${p.id}" type="number" min="1" placeholder="Amount"><br><br>
+      <div class="row">
+        <button class="secondary" onclick="changePoints('${p.id}',1)">Add</button>
+        <button class="danger" onclick="changePoints('${p.id}',-1)">Redeem</button>
+      </div><br>
+      <button class="danger" onclick="delProgram('${p.id}')">Delete</button>
+    </div>`).join(""):'<div class="card">No programs yet.</div>';
+  history.innerHTML=history.length?history.slice().reverse().map(h=>`<div style="padding:9px 0;border-bottom:1px solid #e5e7eb">${new Date(h.time).toLocaleString()} — ${esc(h.text)}</div>`).join(""):'<div class="muted">No activity yet.</div>';
+}
+function calc(total){return Math.floor(Number(total||0)/1000)}
+function normalize(v){
+  if(v===null||v===undefined||v==="")return 0;
+  if(typeof v==="number"){
+    if(v>0&&v<1000&&String(v).includes("."))return Math.round(v*1000);
+    return Math.round(v);
+  }
+  let s=String(v).trim().replace(/\$/g,"").replace(/\s/g,"");
+  if(/^\d{1,3}(\.\d{3})+$/.test(s))return Number(s.replace(/\./g,""));
+  if(/^\d{1,3}(,\d{3})+$/.test(s))return Number(s.replace(/,/g,""));
+  return Math.round(Number(s.replace(/,/g,""))||0);
+}
+scanTotal.addEventListener("input",()=>scanPoints.value=calc(scanTotal.value));
+async function scanReceipt(){
+  const file=receiptFile.files[0];
+  const programId=receiptProgram.value;
+  if(!file)return alert("Choose a receipt first");
+  if(!programId)return alert("Add/select a loyalty program first");
+  const url=backendUrl.value.trim();
+  if(!url){
+    scanResult.style.display="block";
+    scanned={programId};
+    alert("Backend URL is empty. Enter the Mindee total manually, then confirm.");
+    return;
+  }
+  try{
+    const fd=new FormData(); fd.append("file",file);
+    const r=await fetch(url,{method:"POST",body:fd});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error||"Scan failed");
+    const rec=data.receipt||data;
+    const total=normalize(rec.total ?? rec.totalAmount ?? rec.total_amount);
+    scanMerchant.value=rec.merchant||rec.supplier||rec.supplier_name||"";
+    scanDate.value=(rec.date||"").slice(0,10);
+    scanTotal.value=total||"";
+    scanPoints.value=calc(total);
+    scanned={programId,raw:data};
+    scanResult.style.display="block";
+  }catch(e){
+    scanResult.style.display="block";
+    scanned={programId};
+    alert("Could not connect to backend. You can enter the extracted total manually.");
+  }
+}
+function confirmReceiptPoints(){
+  if(!scanned)return;
+  const total=normalize(scanTotal.value);
+  if(!total)return alert("Enter a valid total");
+  const pts=calc(total);
+  const p=programs.find(x=>x.id===scanned.programId);
+  p.points+=pts;
+  const merchant=scanMerchant.value.trim()||p.name;
+  history.push({time:Date.now(),type:"receipt",text:`Receipt ${merchant}: CLP ${total.toLocaleString()} → +${pts} points in ${p.name}`});
+  save();render();
+  scanResult.style.display="none";receiptFile.value="";scanned=null;
+  alert(`${pts} points added`);
+}
+loadProfile();render();
+</script>
+</body>
+</html>
