@@ -185,7 +185,7 @@ async function scanReceipt(){
   const programId=receiptProgram.value;
   if(!file)return alert("Choose a receipt first");
   if(!programId)return alert("Add/select a loyalty program first");
-  const url=backendUrl.value.trim();
+  const url= "https://loyalty-points-dqqz.onrender.com/api/receipts/scan";
   if(!url){
     scanResult.style.display="block";
     scanned={programId};
