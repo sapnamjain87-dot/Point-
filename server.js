@@ -7,7 +7,13 @@ const FormData = require("form-data");
 const app = express();
 const upload = multer();
 
-app.use(cors());
+app.use(cors({
+  origin: "https://point-4kh4.onrender.com",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.options("*", cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
