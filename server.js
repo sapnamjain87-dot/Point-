@@ -53,20 +53,44 @@ app.post("/api/receipts/scan", upload.single("file"), async (req, res) => {
       modelParams
     );
 
-    const fields = response.inference.result.fields;
+  const fields = response.inference.result.fields;
 console.log("FIELDS RAW:", fields);
-console.log("FIELDS KEYS:", Object.keys(fields || {}));
-console.dir(fields, { depth: 10 });
-const receipt = {};
+function convertMindeeField(field) {
+  if (field == null) return null;
 
-for (const [name, field] of Object.entries(fields)) {
-  if (field && typeof field === "object" && "value" in field) {
-    receipt[name] = field.value;
+  // Mindee ObjectField / nested fields
+  if (field.fields && typeof field.fields.entries === "function") {
+    const obj = {};
+    for (const [key, value] of field.fields.entries()) {
+      obj[key] = convertMindeeField(value);
+    }
+    return obj;
   }
+
+  // Arrays
+  if (Array.isArray(field)) {
+    return field.map(convertMindeeField);
+  }
+
+  // Mindee ListField
+  if (field.items && Array.isArray(field.items)) {
+    return field.items.map(convertMindeeField);
+  }
+
+  // SimpleField
+  if (typeof field === "object" && "value" in field) {
+    return field.value;
+  }
+
+  return field;
 }
 
-console.log("MINDEE RECEIPT:", receipt);
+const receipt = {};
 
+for (const [name, field] of fields.entries()) {
+  receipt[name] = convertMindeeField(field);
+}
+console.log("MINDEE RECEIPT:", receipt);
 res.json({
   receipt: receipt
 });
