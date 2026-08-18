@@ -54,7 +54,9 @@ app.post("/api/receipts/scan", upload.single("file"), async (req, res) => {
     );
 
     const fields = response.inference.result.fields;
-
+console.log("FIELDS RAW:", fields);
+console.log("FIELDS KEYS:", Object.keys(fields || {}));
+console.dir(fields, { depth: 10 });
 const receipt = {};
 
 for (const [name, field] of Object.entries(fields)) {
