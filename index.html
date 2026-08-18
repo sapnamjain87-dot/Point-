@@ -196,8 +196,13 @@ async function scanReceipt(){
     const fd=new FormData(); fd.append("file",file);
     const r=await fetch(url,{method:"POST",body:fd});
     const data=await r.json();
-    if(!r.ok)throw new Error(data.error||"Scan failed");
-    const rec=data.receipt||data;
+if(!r.ok){
+    throw new Error(
+        data.details
+            ? JSON.stringify(data.details)
+            : (data.error || "Scan failed")
+    );
+}    const rec=data.receipt||data;
     const total=normalize(rec.total ?? rec.totalAmount ?? rec.total_amount);
     scanMerchant.value=rec.merchant||rec.supplier||rec.supplier_name||"";
     scanDate.value=(rec.date||"").slice(0,10);
@@ -206,10 +211,11 @@ async function scanReceipt(){
     scanned={programId,raw:data};
     scanResult.style.display="block";
   }catch(e){
-    scanResult.style.display="block";
-    scanned={programId};
-    alert("Could not connect to backend. You can enter the extracted total manually.");
-  }
+    console.error("SCAN ERROR:", e);
+scanResult.style.display="block";
+scanned={programId};
+alert("Scan error: " + e.message);
+}
 }
 function confirmReceiptPoints(){
   if(!scanned)return;
