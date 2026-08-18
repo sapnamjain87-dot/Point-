@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
+<head>scanreceipt
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Loyalty Points Manager</title>
 <style>
@@ -202,14 +201,52 @@ if(!r.ok){
             ? JSON.stringify(data.details)
             : (data.error || "Scan failed")
     );
-}    const rec=data.receipt||data;
-    const total=normalize(rec.total ?? rec.totalAmount ?? rec.total_amount);
-    scanMerchant.value=rec.merchant||rec.supplier||rec.supplier_name||"";
-    scanDate.value=(rec.date||"").slice(0,10);
-    scanTotal.value=total||"";
-    scanPoints.value=calc(total);
-    scanned={programId,raw:data};
-    scanResult.style.display="block";
+}    const rec = data.receipt || data;
+
+// Store / merchant
+scanMerchant.value =
+  rec.merchant ||
+  rec.supplier ||
+  rec.supplier_name ||
+  rec.supplierName ||
+  "";
+
+// Date
+scanDate.value = (rec.date || rec.purchase_date || "").toString().slice(0, 10);
+
+// Find receipt total
+let rawTotal =
+  rec.total ??
+  rec.totalAmount ??
+  rec.total_amount ??
+  rec.totalPrice ??
+  rec.total_price ??
+  rec.amount ??
+  null;
+
+// If Mindee did not provide a top-level total,
+// calculate it from the scanned line items.
+if (rawTotal == null && Array.isArray(rec.line_items)) {
+  rawTotal = rec.line_items.reduce((sum, item) => {
+    return sum + Number(
+      item.total_price ??
+      item.totalPrice ??
+      item.amount ??
+      0
+    );
+  }, 0);
+}
+
+const total = normalize(rawTotal);
+
+scanTotal.value = total || "";
+scanPoints.value = calc(total);
+
+scanned = {
+  programId,
+  raw: data
+};
+scanResult.style.display = "block";
   }catch(e){
     console.error("SCAN ERROR:", e);
 scanResult.style.display="block";
