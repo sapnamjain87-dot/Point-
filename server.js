@@ -55,11 +55,19 @@ app.post("/api/receipts/scan", upload.single("file"), async (req, res) => {
 
     const fields = response.inference.result.fields;
 
-    console.log("MINDEE RESULT:", fields);
+const receipt = {};
 
-    res.json({
-      receipt: fields
-    });
+for (const [name, field] of Object.entries(fields)) {
+  if (field && typeof field === "object" && "value" in field) {
+    receipt[name] = field.value;
+  }
+}
+
+console.log("MINDEE RECEIPT:", receipt);
+
+res.json({
+  receipt: receipt
+});
 
   } catch (error) {
     console.error("MINDEE ERROR:", error);
