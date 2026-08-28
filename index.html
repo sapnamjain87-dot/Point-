@@ -202,6 +202,28 @@ if(!r.ok){
             : (data.error || "Scan failed")
     );
 }    const rec = data.receipt || data;
+
+    
+    // Automatically match scanned store to loyalty program
+const detectedStore = String(
+  rec.store ||
+  rec.merchant ||
+  rec.supplier ||
+  rec.supplier_name ||
+  rec.supplierName ||
+  ""
+).toLowerCase();
+
+const matchedProgram = programs.find(p =>
+  detectedStore.includes(String(p.name).toLowerCase()) ||
+  String(p.name).toLowerCase().includes(detectedStore)
+);
+
+if (matchedProgram) {
+  receiptProgram.value = matchedProgram.id;
+}
+
+    
    
 
 // Store / merchant
