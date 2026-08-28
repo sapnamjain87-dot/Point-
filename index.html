@@ -151,8 +151,7 @@ function render(){
   totalPrograms.textContent=programs.length;
   totalPoints.textContent=programs.reduce((s,p)=>s+Number(p.points),0).toLocaleString();
   receiptUpdates.textContent=history.filter(h=>h.type==="receipt").length;
-  receiptProgram.innerHTML=programs.length?programs.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(""):'<option value="">Add a program first</option>';
-  programList.innerHTML=programs.length?programs.map(p=>`
+receiptProgram.innerHTML='<option value="">Auto detect from receipt</option>'+(programs.length?programs.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(""):'<option value="">Add a program first</option>');
     <div class="card">
       <h3>${esc(p.name)}</h3>
       <div class="points">${Number(p.points).toLocaleString()}</div>
