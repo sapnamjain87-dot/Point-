@@ -283,8 +283,7 @@ function confirmReceiptPoints(){
   const total=normalize(scanTotal.value);
   if(!total)return alert("Enter a valid total");
   const pts=calc(total);
-  const p=programs.find(x=>x.id===scanned.programId);
-  p.points+=pts;
+const p=programs.find(x=>x.id===receiptProgram.value);  p.points+=pts;
   const merchant=scanMerchant.value.trim()||p.name;
   history.push({time:Date.now(),type:"receipt",text:`Receipt ${merchant}: CLP ${total.toLocaleString()} → +${pts} points in ${p.name}`});
   save();render();
