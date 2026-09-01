@@ -289,9 +289,22 @@ function confirmReceiptPoints(){
   const total=normalize(scanTotal.value);
   if(!total)return alert("Enter a valid total");
   const pts=calc(total);
+  const receiptKey =
+  scanMerchant.value.trim().toLowerCase() + "|" +
+  scanDate.value + "|" +
+  total;
+
+const duplicate = history.some(h =>
+  h.type === "receipt" && h.receiptKey === receiptKey
+);
+
+if (duplicate) {
+  alert("This receipt has already been added.");
+  return;
+}
 const p=programs.find(x=>x.id===receiptProgram.value);  p.points+=pts;
   const merchant=scanMerchant.value.trim()||p.name;
-  history.push({time:Date.now(),type:"receipt",text:`Receipt ${merchant}: CLP ${total.toLocaleString()} → +${pts} points in ${p.name}`});
+history.push({time:Date.now(),type:"receipt",receiptKey:receiptKey,text:`Receipt ${merchant}: CLP ${total} → +${pts} points`});
   save();render();
   scanResult.style.display="none";receiptFile.value="";scanned=null;
   alert(`${pts} points added`);
