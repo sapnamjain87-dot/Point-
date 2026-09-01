@@ -212,10 +212,18 @@ const detectedStore = String(
   ""
 ).toLowerCase();
 
-const matchedProgram = programs.find(p =>
-  detectedStore.includes(String(p.name).toLowerCase()) ||
-  String(p.name).toLowerCase().includes(detectedStore)
-);
+const cleanName = s =>
+  String(s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+const cleanStore = cleanName(detectedStore);
+
+const matchedProgram = programs.find(p => {
+  const cleanProgram = cleanName(p.name);
+  return cleanStore.includes(cleanProgram) ||
+         cleanProgram.includes(cleanStore);
+});
 
 if (matchedProgram) {
   receiptProgram.value = matchedProgram.id;
