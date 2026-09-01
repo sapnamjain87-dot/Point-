@@ -60,10 +60,16 @@ Return ONLY valid JSON in exactly this format:
 The total must be a number without currency symbols or thousands separators.
 If a value cannot be found, use null.`
         },
-        {
-          type: "input_image",
-          image_url: `data:${mimeType};base64,${base64Image}`
-        }
+       mimeType === "application/pdf"
+  ? {
+      type: "input_file",
+      filename: req.file.originalname || "receipt.pdf",
+      file_data: `data:application/pdf;base64,${base64Image}`
+    }
+  : {
+      type: "input_image",
+      image_url: `data:${mimeType};base64,${base64Image}`
+    }
       ]
     }
   ]
