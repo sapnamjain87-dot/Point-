@@ -151,18 +151,14 @@ function render(){
   totalPrograms.textContent=programs.length;
   totalPoints.textContent=programs.reduce((s,p)=>s+Number(p.points),0).toLocaleString();
   receiptUpdates.textContent=history.filter(h=>h.type==="receipt").length;
-receiptProgram.innerHTML='<option value="">Auto detect from receipt</option>'+(programs.length?programs.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(""):'<option value="">Add a program first</option>');
-    <div class="card">
-      <h3>${esc(p.name)}</h3>
-      <div class="points">${Number(p.points).toLocaleString()}</div>
-      <div class="muted">available points</div><br>
-      <input id="amt-${p.id}" type="number" min="1" placeholder="Amount"><br><br>
-      <div class="row">
-        <button class="secondary" onclick="changePoints('${p.id}',1)">Add</button>
-        <button class="danger" onclick="changePoints('${p.id}',-1)">Redeem</button>
-      </div><br>
-      <button class="danger" onclick="delProgram('${p.id}')">Delete</button>
-    </div>`).join(""):'<div class="card">No programs yet.</div>';
+receiptProgram.innerHTML =
+  '<option value="">Auto detect from receipt</option>' +
+  (programs.length
+    ? programs.map(p =>
+        `<option value="${p.id}">${esc(p.name)}</option>`
+      ).join("")
+    : '<option value="">Add a program first</option>');
+  
   history.innerHTML=history.length?history.slice().reverse().map(h=>`<div style="padding:9px 0;border-bottom:1px solid #e5e7eb">${new Date(h.time).toLocaleString()} — ${esc(h.text)}</div>`).join(""):'<div class="muted">No activity yet.</div>';
 }
 function calc(total){return Math.floor(Number(total||0)/1000)}
