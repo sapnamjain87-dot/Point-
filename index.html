@@ -93,6 +93,14 @@ button{border:none;font-weight:700;cursor:pointer;background:#4f46e5;color:white
 <script>
 const KP="loyaltyProgramsV3", KPR="loyaltyProfileV1", KH="loyaltyHistoryV1";
 let programs=JSON.parse(localStorage.getItem(KP)||"[]");
+  if (!programs.some(p => p.name.toLowerCase() === "zaika")) {
+  programs.push({
+    id: "zaika",
+    name: "Zaika",
+    points: 0
+  });
+  localStorage.setItem(KP, JSON.stringify(programs));
+}
 let history=JSON.parse(localStorage.getItem(KH)||"[]");
 let scanned=null;
 
