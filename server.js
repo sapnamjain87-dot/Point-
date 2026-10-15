@@ -19,7 +19,41 @@ app.use(cors({
 }));
 
 app.use(express.json());
+async function initDatabase() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id SERIAL PRIMARY KEY,
+      name TEXT,
+      rut TEXT UNIQUE NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
 
+    CREATE TABLE IF NOT EXISTS points (
+      id SERIAL PRIMARY KEY,
+      customer_id INTEGER REFERENCES customers(id),
+      program TEXT NOT NULL DEFAULT 'Zaika',
+      points INTEGER DEFAULT 0,
+      UNIQUE(customer_id, program)
+    );
+
+    CREATE TABLE IF NOT EXISTS receipts (
+      id SERIAL PRIMARY KEY,
+      customer_id INTEGER REFERENCES customers(id),
+      merchant TEXT,
+      receipt_date TEXT,
+      total INTEGER,
+      points INTEGER,
+      receipt_key TEXT UNIQUE NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  console.log("PuntoGo database ready");
+}
+
+initDatabase().catch(err => {
+  console.error("Database initialization error:", err);
+});
 app.get("/", (req, res) => {
   res.json({ status: "Points backend is running" });
 });
