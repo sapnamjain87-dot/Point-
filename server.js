@@ -57,7 +57,46 @@ initDatabase().catch(err => {
 app.get("/", (req, res) => {
   res.json({ status: "Points backend is running" });
 });
+app.post("/api/customers", async (req, res) => {
+  try {
+    const { name, rut } = req.body;
 
+    if (!name || !rut) {
+      return res.status(400).json({
+        error: "Name and RUT are required"
+      });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO customers (name, rut)
+       VALUES ($1, $2)
+       ON CONFLICT (rut)
+       DO UPDATE SET name = EXCLUDED.name
+       RETURNING *`,
+      [name.trim(), rut.trim()]
+    );
+
+    const customer = result.rows[0];
+
+    await pool.query(
+      `INSERT INTO points (customer_id, program, points)
+       VALUES ($1, 'Zaika', 0)
+       ON CONFLICT (customer_id, program) DO NOTHING`,
+      [customer.id]
+    );
+
+    res.json({
+      success: true,
+      customer: customer
+    });
+
+  } catch (err) {
+    console.error("Customer registration error:", err);
+    res.status(500).json({
+      error: "Could not register customer"
+    });
+  }
+});
 app.post("/api/receipts/scan", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
