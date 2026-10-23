@@ -27,6 +27,7 @@ async function initDatabase() {
       rut TEXT UNIQUE NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+    );
 
     CREATE TABLE IF NOT EXISTS points (
       id SERIAL PRIMARY KEY,
