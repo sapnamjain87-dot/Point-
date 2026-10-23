@@ -36,10 +36,12 @@ async function initDatabase() {
       expires_at TIMESTAMP,
       UNIQUE(customer_id, program)
     );
+   
     await pool.query(`
   ALTER TABLE points
   ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;
 `);
+  await pool.query(`
 
     CREATE TABLE IF NOT EXISTS receipts (
       id SERIAL PRIMARY KEY,
