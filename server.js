@@ -21,28 +21,32 @@ app.use(cors({
 app.use(express.json());
 async function initDatabase() {
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS customers (
-      id SERIAL PRIMARY KEY,
-      name TEXT,
-      rut TEXT UNIQUE NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    );
+  CREATE TABLE IF NOT EXISTS customers (
+    id SERIAL PRIMARY KEY,
+    name TEXT,
+    rut TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
 
-    CREATE TABLE IF NOT EXISTS points (
-      id SERIAL PRIMARY KEY,
-      customer_id INTEGER REFERENCES customers(id),
-      program TEXT NOT NULL DEFAULT 'Zaika',
-      points INTEGER DEFAULT 0,
-      expires_at TIMESTAMP,
-      UNIQUE(customer_id, program)
-    );
-   
-    await pool.query(`
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS points (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER REFERENCES customers(id),
+    program TEXT NOT NULL DEFAULT 'Zaika',
+    points INTEGER DEFAULT 0,
+    expires_at TIMESTAMP,
+    UNIQUE(customer_id, program)
+  );
+`);
+
+await pool.query(`
   ALTER TABLE points
   ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;
 `);
-  await pool.query(`
+
+await pool.query(`
+  
 
     CREATE TABLE IF NOT EXISTS receipts (
       id SERIAL PRIMARY KEY,
