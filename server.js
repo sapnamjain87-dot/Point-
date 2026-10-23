@@ -33,8 +33,13 @@ async function initDatabase() {
       customer_id INTEGER REFERENCES customers(id),
       program TEXT NOT NULL DEFAULT 'Zaika',
       points INTEGER DEFAULT 0,
+      expires_at TIMESTAMP,
       UNIQUE(customer_id, program)
     );
+    await pool.query(`
+  ALTER TABLE points
+  ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;
+`);
 
     CREATE TABLE IF NOT EXISTS receipts (
       id SERIAL PRIMARY KEY,
@@ -47,6 +52,15 @@ async function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS redemptions (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER REFERENCES customers(id),
+    program TEXT NOT NULL DEFAULT 'Zaika',
+    points_redeemed INTEGER NOT NULL,
+    redeemed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
 
   console.log("PuntoGo database ready");
 }
