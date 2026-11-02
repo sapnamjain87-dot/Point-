@@ -36,56 +36,56 @@ button{border:none;font-weight:700;cursor:pointer;background:#4f46e5;color:white
 </section>
 
 <section class="panel">
-<h2>User Profile</h2>
+<h2>Mi perfil</h2>
 <div class="row">
-<div><label>Name</label><input id="profileName" placeholder="Your name"></div>
+<div><label>Nombre</label><input id="profileName" placeholder="Your name"></div>
 <div><label>RUT</label><input id="profileRut" placeholder="12.345.678-9"></div>
 </div>
-<br><button onclick="saveProfile()">Save Profile</button>
-</section>
+<br><button onclick="saveProfile()">Guardar perfil</button>
+ </section>
 
 <section class="panel">
-<h2>Scan / Upload Boleta</h2>
+<h2>Escanear /Subir boleta</h2>
 <div class="row">
-<div><label>Receipt image</label><input id="receiptFile" type="file" accept="image/*,.pdf"></div>
-<div><label>Loyalty program</label><select id="receiptProgram"></select></div>
+<div><label> imagen de la boleta</label><input id="receiptFile" type="file" accept="image/*,.pdf"></div>
+<div><label> programa de puntos</label><select id="receiptProgram"></select></div>
 </div>
 <br>
 <div class="row">
-<div><label>Backend URL</label><input id="backendUrl" value="https://loyalty-points-dqqz.onrender.com/api/recei pts/scan">
-<div><label>Points rule</label><input value="1 point per CLP 1,000" disabled></div>
-</div>
-<br><button onclick="scanReceipt()">Scan Receipt</button>
-<div class="notice">Keep your Mindee API key only on the backend server. Do not paste it into this page.</div>
+<div><label>ServidorL</label><input id="backendUrl" value="https://loyalty-points-dqqz.onrender.com/api/recei pts/scan">
+<div><label>Regla de puntos</label><input value="1 point per CLP 1,000" disabled></div>
+</div> 
+<br><button onclick="scanReceipt()">Escanear boleta</button>
+<div class="notice">Tu información se procesa de forma segura.</div>
 </section>
 
 <section class="panel" id="scanResult">
-<h2>Receipt Result</h2>
+<h2> Resultado de la boleta</h2>
 <div class="row">
-<div><label>Store</label><input id="scanMerchant"></div>
-<div><label>Date</label><input id="scanDate" type="date"></div>
+<div><label>Comercio</label><input id="scanMerchant"></div>
+<div><label>fecha</label><input id="scanDate" type="date"></div>
 </div>
 <br>
 <div class="row">
-<div><label>Total Amount (CLP)</label><input id="scanTotal" type="number"></div>
-<div><label>Calculated Points</label><input id="scanPoints" type="number" disabled></div>
+<div><label>Monto total (CLP)</label><input id="scanTotal" type="number"></div>
+<div><label>Puntos calculados</label><input id="scanPoints" type="number" disabled></div>
 </div>
-<br><button class="success" onclick="confirmReceiptPoints()">Confirm & Add Points</button>
+<br><button class="success" onclick="confirmReceiptPoints()">Confirmar y agregar puntos</button>
 </section>
 
 <section class="panel">
-<h2>Add Loyalty Program</h2>
+<h2>Agregar programa de puntos</h2>
 <div class="row">
-<div><label>Store / Program</label><input id="name" placeholder="Falabella, Lider..."></div>
-<div><label>Current Points</label><input id="points" type="number" value="0"></div>
+<div><label>Comercio / Programa</label><input id="name" placeholder="Falabella, Lider..."></div>
+<div><label>puntos  actuales</label><input id="points" type="number" value="0"></div>
 </div>
-<br><button onclick="addProgram()">Add Program</button>
+<br><button onclick="addProgram()">Agregar programa</button>
 </section>
 
 <section id="programList" class="programs"></section>
 
 <section class="panel">
-<h2>Activity History</h2>
+<h2>Historial de actividad</h2>
 <div id="history"></div>
 </section>
 </main>
@@ -121,7 +121,7 @@ function loadProfile(){
   const n = nameInput.value.trim();
 
   if (!n) {
-    alert("Enter store/program name");
+    alert("Ingresa el nombre del comercio o programa");
     return;
   }
 
@@ -142,25 +142,25 @@ function loadProfile(){
   save();
   render();
 
-  alert(n + " added successfully");
+  alert(n + " agregado correctamente");
 }function changePoints(id,dir){
   const amt=Number(document.getElementById("amt-"+id).value);
-  if(!amt||amt<=0)return alert("Enter a valid amount");
+  if(!amt||amt<=0)return alert("Ingresa un monto valido");
   const p=programs.find(x=>x.id===id);
-  if(dir<0&&amt>p.points)return alert("Not enough points");
+  if(dir<0&&amt>p.points)return alert("No tienes suficientes puntos");
   p.points+=dir*amt;
   history.push({time:Date.now(),type:"manual",text:`${dir>0?"Added":"Redeemed"} ${amt} points in ${p.name}`});
   save();render();
 }
 function delProgram(id){
-  if(confirm("Delete this program?")){programs=programs.filter(x=>x.id!==id);save();render()}
+  if(confirm("Eliminar este programa?")){programs=programs.filter(x=>x.id!==id);save();render()}
 }
 function render(){
   totalPrograms.textContent=programs.length;
   totalPoints.textContent=programs.reduce((s,p)=>s+Number(p.points),0).toLocaleString();
   receiptUpdates.textContent=history.filter(h=>h.type==="receipt").length;
 receiptProgram.innerHTML =
-  '<option value="">Auto detect from receipt</option>' +
+  '<option value="">Detectar automaticamente desde la boleta</option>' +
   (programs.length
     ? programs.map(p =>
         `<option value="${p.id}">${esc(p.name)}</option>`
@@ -189,7 +189,7 @@ scanTotal.addEventListener("input",()=>scanPoints.value=calc(scanTotal.value));
 async function scanReceipt(){
   const file=receiptFile.files[0];
   const programId=receiptProgram.value;
-  if(!file)return alert("Choose a receipt first");
+  if(!file)return alert("Selecciona una boleta primero");
 
 
 
