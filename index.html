@@ -35,15 +35,38 @@ button{border:none;font-weight:700;cursor:pointer;background:#4f46e5;color:white
 <div class="card"><div class="muted">Mis boletas</div><div class="points" id="receiptUpdates">0</div></div>
 </section>
 
-<section class="panel">
-<h2>Mi perfil</h2>
-<div class="row">
-<div><label>Nombre</label><input id="profileName" placeholder="Your name"></div>
-<div><label>RUT</label><input id="profileRut" placeholder="12.345.678-9"></div>
-</div>
-<br><button onclick="saveProfile()">Guardar perfil</button>
- </section>
+<section class="panel" id="profileSection">
+  <h2>Registro / Mi perfil</h2>
 
+  <div class="row">
+    <div>
+      <label>Nombre</label>
+      <input id="profileName" placeholder="Tu nombre">
+    </div>
+
+    <div>
+      <label>RUT</label>
+      <input id="profileRut" placeholder="12.345.678-9">
+    </div>
+  </div>
+
+  <br>
+
+  <div class="row">
+    <div>
+      <label>Teléfono</label>
+      <input id="profilePhone" type="tel" placeholder="+56 9 1234 5678">
+    </div>
+
+    <div>
+     <label>Email</label>
+      <input id="profileEmail" type="email" placeholder="tu@email.com">
+    </div>
+  </div>
+
+  <br>
+  <button onclick="saveProfile()">Registrarme</button>
+</section>
 <section class="panel">
 <h2>Escanear /Subir boleta</h2>
 <div class="row">
@@ -106,13 +129,58 @@ let scanned=null;
 
 function esc(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
 function save(){localStorage.setItem(KP,JSON.stringify(programs));localStorage.setItem(KH,JSON.stringify(history))}
-function saveProfile(){
-  localStorage.setItem(KPR,JSON.stringify({name:profileName.value.trim(),rut:profileRut.value.trim()}));
-  alert("Profile saved");
+async function saveProfile(){
+  const name = profileName.value.trim();
+  const rut = profileRut.value.trim();
+  const phone = profilePhone.value.trim();
+  const email = profileEmail.value.trim();
+
+  if (!name || !rut || !phone || !email) {
+    alert("Completa nombre, RUT, teléfono y email.");
+    return;
+  }
+
+  try {
+    const response = await fetch("https://loyalty-points-dqqz.onrender.com/api/customers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        rut,
+        phone,
+        email
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "No se pudo registrar");
+    }
+
+    localStorage.setItem(KPR, JSON.stringify({
+      name,
+      rut,
+      phone,
+      email,
+      customerId: data.customer.id
+    }));
+
+    alert("¡Registro exitoso!");
+  } catch (err) {
+    alert("Error al registrar: " + err.message);
+  }
 }
+
 function loadProfile(){
-  const p=JSON.parse(localStorage.getItem(KPR)||"{}");
-  profileName.value=p.name||""; profileRut.value=p.rut||"";
+  const p = JSON.parse(localStorage.getItem(KPR) || "{}");
+
+  profileName.value = p.name || "";
+  profileRut.value = p.rut || "";
+  profilePhone.value = p.phone || "";
+  profileEmail.value = p.email || "";
 }
   function addProgram() {
   const nameInput = document.getElementById("name");
