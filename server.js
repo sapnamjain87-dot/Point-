@@ -89,21 +89,22 @@ app.get("/", (req, res) => {
 });
 app.post("/api/customers", async (req, res) => {
   try {
-    const { name, rut } = req.body;
-
-    if (!name || !rut) {
-      return res.status(400).json({
-        error: "Name and RUT are required"
+const { name, rut, phone, email } = req.body;
+if (!name || !rut || !phone || !email) {      return res.status(400).json({
+        error: "Name and RUT , phone and email  are required"
       });
     }
 
     const result = await pool.query(
-      `INSERT INTO customers (name, rut)
-       VALUES ($1, $2)
-       ON CONFLICT (rut)
-       DO UPDATE SET name = EXCLUDED.name
-       RETURNING *`,
-      [name.trim(), rut.trim()]
+      `INSERT INTO customers (name, rut, phone, email)
+ VALUES ($1, $2, $3, $4)
+ ON CONFLICT (rut)
+ DO UPDATE SET
+   name = EXCLUDED.name,
+   phone = EXCLUDED.phone,
+   email = EXCLUDED.email
+ RETURNING *`,
+[name.trim(), rut.trim(), phone.trim(), email.trim()]
     );
 
     const customer = result.rows[0];
