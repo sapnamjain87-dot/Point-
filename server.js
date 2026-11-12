@@ -126,13 +126,7 @@ app.post("/api/receipts/scan", upload.single("file"), async (req, res) => {
         error: "No receipt file uploaded"
       });
     }
-const rut = (req.body.rut || "").trim();
 
-if (!rut) {
-  return res.status(400).json({
-    error: "RUT is required"
-  });
-}
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
         error: "OpenAI API key is missing"
