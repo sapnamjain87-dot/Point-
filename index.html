@@ -378,8 +378,8 @@ if (duplicate) {
   alert("This receipt has already been added.");
   return;
 }
-const p=programs.find(x=>x.id==="Zaika");  p.points+=pts;
-  const merchant=scanMerchant.value.trim()||p.name;
+const p=programs.find(x=>x.id==="zaika") || programs.find(x=>x.name.toLowerCase()==="zaika"); if(!p)return alert("Zaika program not found"); p.points+=pts;
+const merchant=scanMerchant.value.trim()||p.name;
 history.push({time:Date.now(),type:"receipt",receiptKey:receiptKey,text:`Receipt ${merchant}: CLP ${total} → +${pts} points`});
   save();render();
   scanResult.style.display="none";receiptFile.value="";scanned=null;
