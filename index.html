@@ -71,8 +71,7 @@ button{border:none;font-weight:700;cursor:pointer;background:#4f46e5;color:white
 <h2>Escanear /Subir boleta</h2>
 <div class="row">
 <div><label> imagen de la boleta</label><input id="receiptFile" type="file" accept="image/*,.pdf"></div>
-<div><label> programa de puntos</label><select id="receiptProgram"></select></div>
-</div>
+<div style="display:none"><select id="receiptProgram"></select></div>
 <br>
 <div class="row">
 
@@ -223,8 +222,7 @@ function render(){
   totalPoints.textContent=programs.reduce((s,p)=>s+Number(p.points),0).toLocaleString();
   receiptUpdates.textContent=history.filter(h=>h.type==="receipt").length;
 receiptProgram.innerHTML =
-  '<option value="">Detectar automaticamente desde la boleta</option>' +
-  (programs.length
+'<option value="zaika">Zaika</option>' +  (programs.length
     ? programs.map(p =>
         `<option value="${p.id}">${esc(p.name)}</option>`
       ).join("")
@@ -380,7 +378,7 @@ if (duplicate) {
   alert("This receipt has already been added.");
   return;
 }
-const p=programs.find(x=>x.id===receiptProgram.value);  p.points+=pts;
+const p=programs.find(x=>x.id==="Zaika");  p.points+=pts;
   const merchant=scanMerchant.value.trim()||p.name;
 history.push({time:Date.now(),type:"receipt",receiptKey:receiptKey,text:`Receipt ${merchant}: CLP ${total} → +${pts} points`});
   save();render();
